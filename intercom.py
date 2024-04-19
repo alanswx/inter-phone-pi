@@ -6,24 +6,35 @@ from gpiozero import LED, Button
 ringer = LED(17)
 offhook = Button(21)
 waiting_to_answer = False
+call_in_progress = False
 
 mTP = ''
 
 def tick():
   global waiting_to_answer
+  global call_in_progress
   # check GPIO (off hook)
+
+  # we are getting an incoming call, ring
   if (waiting_to_answer and not offhook.is_pressed):
        ringer.on()
        time.sleep(1)
        ringer.off()
        time.sleep(1)
+  # we are getting an incoming call, answer
   if (waiting_to_answer and offhook.is_pressed):
        waiting_to_answer = False
        mTP.answer()
+       call_in_progress = True
+  # we picked up receiver, make a call
   if (waiting_to_answer == False  and offhook.is_pressed):
         mTP.call("101")
         waiting_to_answer = False
-  
+        call_in_progress = True
+  # hangup
+  if (call_in_progress and not offhook.is_pressed):
+        mTP.bye()
+        call_in_progress = False
 
 
 
